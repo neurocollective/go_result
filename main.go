@@ -12,6 +12,13 @@ func (r *Result[V]) Ok() bool {
 	return true
 }
 
+func (r *Result[V]) IsNil() bool {
+	if r.Value == nil {
+		return true
+	}
+	return false
+}
+
 func (r *Result[V]) Error() error {
 	return r.Error
 }
