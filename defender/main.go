@@ -2,7 +2,6 @@ package defender
 
 import (
 	r "github.com/neurocollective/go_result/result"
-	"fmt"
 )
 
 type Defender struct {
