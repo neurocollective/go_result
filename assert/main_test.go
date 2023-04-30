@@ -1,13 +1,13 @@
-package defender
+package assert
 
 import (
 	"testing"
-	r "github.com/neurocollective/go_result/result"
+	"github.com/neurocollective/go_result/defender"
 	"fmt"
 	"errors"
 )
 
-func GetServiceConfig(serviceName string) *r.Result {
+func GetServiceConfig(serviceName string) *Result {
 	serviceConfigs := map[string]map[string]string {
 		"testService": map[string]string{
 			"url": "http://test.aexp.com/whatevs",
@@ -17,9 +17,9 @@ func GetServiceConfig(serviceName string) *r.Result {
 
 	serviceConfig, present := serviceConfigs[serviceName]
 	if !present {
-		return &r.Result{ nil, errors.New(serviceName + " not found!") }
+		return &Result{ nil, errors.New(serviceName + " not found!") }
 	}
-	return &r.Result{ serviceConfig, nil }
+	return &Result{ serviceConfig, nil }
 }
 
 func MockApiCall(config map[string]string) map[string]string {
@@ -29,31 +29,27 @@ func MockApiCall(config map[string]string) map[string]string {
 	}
 }
 
-func DoThingTwo(response map[string]string) *r.Result {
-	return &r.Result{ nil, nil }
+func DoThingTwo(response map[string]string) *Result {
+	return &Result{ nil, nil }
 }
 
-func HandleError(result *r.Result) *r.Result {
+func HandleError(result *Result) *Result {
 	fmt.Println(result.Error)
 	return nil
 }
 
-func TestDefender(t *testing.T) {
+func TestDefenderWithAssert(t *testing.T) {
 
-	result := New().Next(func(result *r.Result) *r.Result {
+	result := defender.New().Next(func(result *Result) *Result {
 
 			return GetServiceConfig("testService")
-		}).Next(func(result *r.Result) *r.Result {
+		}).Next(GetTypedAction[map[string]string](
+			func(result *TypedResult[map[string]string]) *Result {
 
-			serviceConfig, ok := result.Value.(map[string]string)
-
-			if !ok {
-				return &Result { nil, errors.New("failed to assert `map[string]string`!")}
-			}
-
-			response := MockApiCall(serviceConfig)
-			return DoThingTwo(response)
-		}).Error(func(result *r.Result) *r.Result {
+				response := MockApiCall(result.Value)
+				return DoThingTwo(response)
+			}),
+		).Error(func(result *Result) *Result {
 
 			t.Errorf("oh noes, failed: %s", result.Error)
 			return result

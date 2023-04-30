@@ -1,13 +1,15 @@
 package defender
 
 import (
-	r "github.com/neurocollective/go_result/result"
+	"github.com/neurocollective/go_result/result"
 )
 
+type Result = result.Result
+
 type Defender struct {
-	CurrentResult *r.Result
-	handlers []func(*r.Result) *r.Result
-	errorHandler func(*r.Result) *r.Result
+	CurrentResult *Result
+	handlers []func(*Result) *Result
+	errorHandler func(*Result) *Result
 }
 
 func New() *Defender {
@@ -15,18 +17,18 @@ func New() *Defender {
 	return &defender
 }
 
-func (d *Defender) Next(action func(*r.Result) *r.Result) *Defender {
+func (d *Defender) Next(action func(*Result) *Result) *Defender {
 	d.handlers = append(d.handlers, action)
 	return d
 }
 
-func (d *Defender) Error(errorAction func(*r.Result) *r.Result) *Defender {
+func (d *Defender) Error(errorAction func(*Result) *Result) *Defender {
 	d.errorHandler = errorAction
 	return d
 }
 
-func (d *Defender) Run() *r.Result {
-	var lastResult *r.Result
+func (d *Defender) Run() *Result {
+	var lastResult *Result
 	for _, action := range d.handlers {
 		currentResult := action(lastResult)
 
@@ -35,6 +37,6 @@ func (d *Defender) Run() *r.Result {
 		}
 		lastResult = currentResult
 	}
-	return &r.Result{ "done", nil }
+	return &Result{ "done", nil }
 }
 
